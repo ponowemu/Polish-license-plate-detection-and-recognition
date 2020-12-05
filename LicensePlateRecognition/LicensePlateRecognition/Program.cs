@@ -1,12 +1,26 @@
-﻿using System;
+﻿using ImageProcessor;
+using ImageProcessor.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Utils;
 
-namespace LicensePlateRecognition
+namespace ConsoleApplication
 {
     internal class Program
     {
         private static void Main()
         {
-            Console.WriteLine("Hello!");
+            Logger.Log("Start");
+
+            var serviceProvider = DependencyInjectionContainer.Build();
+            var scope = serviceProvider.CreateScope();
+
+            var settings = new Settings
+            {
+                ImagesPath = "c:/dev/"
+            };
+            scope.ServiceProvider.GetRequiredService<IImageProcessing>().Process(settings);
+
+            Logger.Log("Finished");
         }
     }
 }
