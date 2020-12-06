@@ -13,6 +13,7 @@ namespace ConsoleApplication
                 .AddSingleton<IImageProcessing, ImageProcessing>()
                 .AddScoped<IBitmapConverter, BitmapConverter>()
                 .AddScoped<IFileInputOutputHelper, FileInputOutputHelper>()
+                .AddScoped<IGaussianBlur, GaussianBlur>()
                 .BuildServiceProvider();
         }
     }
