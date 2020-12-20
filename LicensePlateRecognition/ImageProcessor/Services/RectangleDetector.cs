@@ -25,30 +25,24 @@ namespace ImageProcessor.Services
         /// </remarks>
         /// <param name="imageContext">Context of the processing image</param>
         /// <param name="useOpenCV">Use OpenCV library algorithms</param>
-        void Detect(ImageContext imageContext, bool useOpenCV = false);
+        ImageContext Detect(ImageContext imageContext, bool useOpenCV = false);
     }
     /// <inheritdoc cref="IRectangleDetector"/>
     public class RectangleDetector : IRectangleDetector
     {
+        private readonly IFileInputOutputHelper _fileIOHelper;
+
         static int[] directionInX = new int[] { -1, 0, 1, 0 };
         static int[] directionInY = new int[] { 0, 1, 0, -1 };
 
-        //private readonly ILogger<RectangleDetector> _logger;
-        private readonly IFileInputOutputHelper _fileIOHelper;
-
         public RectangleDetector(
-            //ILogger<RectangleDetector> logger,
             IFileInputOutputHelper fileIOHelper
             )
         {
-            //_logger = logger;
             _fileIOHelper = fileIOHelper;
         }
-        public void Detect(ImageContext imageContext, bool useOpenCV = false)
+        public ImageContext Detect(ImageContext imageContext, bool useOpenCV = false)
         {
-            imageContext = _fileIOHelper.ReadImage(@"D:\\test11.png");
-            ProcessOpenCv(imageContext.ProcessedBitmap);
-
             if (imageContext.ProcessedBitmap.Width > 0
                 && imageContext.ProcessedBitmap.Height > 0)
             {
@@ -57,17 +51,7 @@ namespace ImageProcessor.Services
                 else
                     ProcessDfs(imageContext.ProcessedBitmap);
             }
-
-
-            //if (imageContext.ProcessedBitmap.Width > 0
-            //    && imageContext.ProcessedBitmap.Height > 0)
-            //{
-            //    // Pomyśleć nad jakimś generycznym wywołaniem 
-            //    _fileIOHelper.SaveImage(imageContext, true);
-            //}
-
-            //else
-            //    _logger.LogWarning($"An empty image provided: {imageContext.FileName}");
+            return imageContext;
         }
         #region Procesowanie własne DFS
         private static Bitmap ProcessDfs(System.Drawing.Bitmap image)
@@ -80,7 +64,7 @@ namespace ImageProcessor.Services
                 DetectAreas(binaryMatrix);
             }
 
-            return default;
+            return image;
         }
         /// <summary>
         /// Converts an image bitmap to 2d-array (matrix)
@@ -137,22 +121,28 @@ namespace ImageProcessor.Services
                     }
                 }
             }
-            //// to poniżej do zaorania, teraz tylko tymczasowo sobie 
-            //// odkładamy te macierz w pliku
-            //using (var sw = new StreamWriter(@"D:\\outputText.txt"))
-            //{
-            //    for (int i = 0; i < boolMatrix.GetLength(0); i++)
-            //    {
-            //        for (int j = 0; j < boolMatrix.GetLength(1); j++)
-            //        {
-            //            sw.Write(boolMatrix[i, j] + " ");
-            //        }
-            //        sw.Write("\n");
-            //    }
-            //    sw.Flush();
-            //    sw.Close();
-            //}
+
+            //SaveMatToFile(boolMatrix, @"D:\\mat_out.txt");
             return boolMatrix;
+
+            // poniżej generalnie do zaorania 
+            // na potrzeby testów tylko sobie odkładamy
+            void SaveMatToFile(int[,] boolMatrix, string filePath)
+            {
+                using (var sw = new StreamWriter(filePath))
+                {
+                    for (int i = 0; i < boolMatrix.GetLength(0); i++)
+                    {
+                        for (int j = 0; j < boolMatrix.GetLength(1); j++)
+                        {
+                            sw.Write(boolMatrix[i, j] + " ");
+                        }
+                        sw.Write("\n");
+                    }
+                    sw.Flush();
+                    sw.Close();
+                }
+            }
         }
         private static void DetectAreas(int[,] pixelsMatrix)
         {
@@ -245,7 +235,11 @@ namespace ImageProcessor.Services
                                 cols);
 
                         if (check)
+                        {
+                            Console.WriteLine($"Point: {x},{y}");
                             return true;
+                        }
+                            
                     }
                 }
             }
@@ -267,7 +261,6 @@ namespace ImageProcessor.Services
                 CvInvoke.CvtColor(matImage, proceMat, ColorConversion.Bgr2Gray);
                 CvInvoke.FindContours(proceMat, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
 
-                // Selecting largest contour
                 if (contours.Size > 0)
                 {
                     double maxArea = 0;
@@ -286,10 +279,9 @@ namespace ImageProcessor.Services
                         }
                     }
                 }
-                Image<Bgr, Byte> imgeOrigenal = matImage.ToImage<Bgr, Byte>();
-                imgeOrigenal.Save(@"D:\\test22.png");
+                Image<Bgr, Byte> imageBgr = matImage.ToImage<Bgr, Byte>();
+                return imageBgr.ToBitmap();
             }
-            return null;
         }
         private static void MarkDetectedObject(Mat frame, VectorOfPoint contour, double area)
         {
