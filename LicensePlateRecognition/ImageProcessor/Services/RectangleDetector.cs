@@ -148,7 +148,6 @@ namespace ImageProcessor.Services
         {
             // Wydaje mi sie, że któryś z tych dwóch algor.
             // będzie odpowiedni przy drobnej modyfikacji
-            // Chuj wie jak go zastosować.
             // -- Connected-component labeling
             // -- Flood-fill
             int rows = pixelsMatrix.GetLength(0);
