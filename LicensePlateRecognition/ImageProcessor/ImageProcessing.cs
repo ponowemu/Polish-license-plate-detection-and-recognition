@@ -31,9 +31,9 @@ namespace ImageProcessor
 
             foreach (var image in images)
             {
-                _bitmapConverter.ApplyGrayScale(image);
-                _bitmapConverter.ApplyGaussianBlur(image, settings);
-
+                //_bitmapConverter.ApplyGrayScale(image);
+                //_bitmapConverter.ApplyGaussianBlur(image, settings);
+                _bitmapConverter.ApplyFullCannyOperator(image, settings);
 
                 _fileInputOutputHelper.SaveImage(image, true);
             }
